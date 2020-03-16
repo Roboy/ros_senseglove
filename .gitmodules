@@ -1,0 +1,3 @@
+[submodule "SenseGlove-API"]
+	path = SenseGlove-API
+	url = https://github.com/Roboy/SenseGlove-API.git
