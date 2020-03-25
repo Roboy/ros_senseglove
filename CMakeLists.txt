@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   geometry_msgs
+  roboy_middleware_msgs
 )
 
 find_library(SENSEGLOVE SGCore.so HINTS SenseGlove-API/Core/SGCoreCpp/lib/Linux)
@@ -108,7 +109,7 @@ find_library(SENSEGLOVE SGCore.so HINTS SenseGlove-API/Core/SGCoreCpp/lib/Linux)
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES ros_senseglove
-  CATKIN_DEPENDS roscpp sensor_msgs std_msgs geometry_msgs
+  CATKIN_DEPENDS roscpp sensor_msgs std_msgs geometry_msgs roboy_middleware_msgs
 #  DEPENDS system_lib
 )
 
