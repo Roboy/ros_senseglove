@@ -35,6 +35,8 @@ vector<float> bionic_cmd(vector<float> steps, vector<SGCore::Kinematics::Vect3D>
     return cmds;
 }
 int main(int argc, char** argv) {
+    bool simulation = true;
+    bool hardware = false;
     ros::init(argc, argv, "senseglove");
     ros::NodeHandle nh;
     auto vis_pub = nh.advertise<visualization_msgs::MarkerArray>("/visualization_marker_array", 1);
@@ -74,7 +76,7 @@ int main(int argc, char** argv) {
         if (leftGlove.GetGlovePose(glovePose)) {
 //            SGCore::SG::SG_GlovePose glovePose;
 
-            if (!max_calibrated) {
+            if (!max_calibrated && hardware) {
                 ROS_INFO_STREAM("Open your hand. Press ENTER to continue...");
                 cin.get();
                 leftGlove.GetGlovePose(glovePose);
@@ -87,7 +89,7 @@ int main(int argc, char** argv) {
                 continue;
             }
 
-            if (!min_calibrated){
+            if (!min_calibrated && hardware){
                 ROS_INFO_STREAM("Close your hand. Presse ENTER to continue...");
                 cin.get();
                 leftGlove.GetGlovePose(glovePose);
@@ -110,12 +112,13 @@ int main(int argc, char** argv) {
 
             std::vector<SGCore::Kinematics::Vect3D> tipPositions = glovePose.CalculateFingerTips(handProfile);
 
-            roboy_middleware_msgs::MotorCommand motorCommand;
-            motorCommand.legacy = false;
-            motorCommand.motor = {6,7,8,9};
-            motorCommand.setpoint = bionic_cmd(steps,maxTipPositions,tipPositions);
-            motorcmd_pub.publish(motorCommand);
-
+            if (hardware) {
+                roboy_middleware_msgs::MotorCommand motorCommand;
+                motorCommand.legacy = false;
+                motorCommand.motor = {6, 7, 8, 9};
+                motorCommand.setpoint = bionic_cmd(steps, maxTipPositions, tipPositions);
+                motorcmd_pub.publish(motorCommand);
+            }
 
             int id = 0;
             for (auto t: tipPositions) {
@@ -221,14 +224,30 @@ int main(int argc, char** argv) {
 
             vis_pub.publish(vis_msg);
 
-            sensor_msgs::JointState jointState;
-            auto ha = handPose.handAngles;
-            for (auto finger: handPose.handAngles) {
-                for (auto joint: finger) {
-                    jointState.position.push_back(joint.y);
+            if (simulation) {
+                sensor_msgs::JointState jointState;
+                jointState.name = {"lh_THJ4", "lh_THJ2", "lh_THJ1",
+                                   "lh_FFJ3", "lh_FFJ2", "lh_FFJ1",
+                                   "lh_MFJ3", "lh_MFJ2", "lh_MFJ1",
+                                   "lh_RFJ3", "lh_RFJ2", "lh_RFJ1",
+                                   "lh_LFJ3", "lh_LFJ2", "lh_LFJ1"};
+                auto ha = handPose.handAngles;
+                for (int i=0;i<ha.size();i++) {
+                    auto finger = ha[i];
+                    for (auto j: finger) {
+                        if (jointState.position.size() == 0) {
+                            jointState.position.push_back(-j.z);
+                        }
+                        else {
+                            jointState.position.push_back(j.y);
+                        }
+
+                    }
                 }
+                joint_pub.publish(jointState);
             }
-            joint_pub.publish(jointState);
+
+
 
 
         }
