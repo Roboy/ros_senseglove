@@ -15,8 +15,11 @@ find_package(catkin REQUIRED COMPONENTS
   roboy_middleware_msgs
 )
 
-find_library(SENSEGLOVE SGCore.so HINTS SenseGlove-API/Core/SGCoreCpp/lib/Linux)
-
+if (WIN32)
+  find_library(SENSEGLOVE SGCore HINTS SenseGlove-API/Core/SGCoreCpp/lib/Windows)
+else()
+  find_library(SENSEGLOVE SGCore.so HINTS SenseGlove-API/Core/SGCoreCpp/lib/Linux)
+endif()
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -172,9 +175,9 @@ target_link_libraries(${PROJECT_NAME}_node  ${SENSEGLOVE} ${catkin_LIBRARIES})
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
-# install(TARGETS ${PROJECT_NAME}_node
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+install(TARGETS ${PROJECT_NAME}_node
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark libraries for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
@@ -192,9 +195,9 @@ target_link_libraries(${PROJECT_NAME}_node  ${SENSEGLOVE} ${catkin_LIBRARIES})
 # )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-#   # myfile1
-#   # myfile2
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
-
+if (WIN32)
+  install(FILES
+    SenseGlove-API/Core/SGCoreCpp/lib/Windows/SGCore.dll
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  )
+endif()
